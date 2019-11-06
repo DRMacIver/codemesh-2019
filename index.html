@@ -1,0 +1,873 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Can you make it smaller?</title>
+
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/drmaciver.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+        <style>
+        .reveal p, .reveal h1, .reveal h2, .reveal h3, .reveal ul, .reveal ol {
+            font-variant: small-caps;
+            font-size: 60pt;
+        }
+
+        code.python {
+            padding: 1em 1em 1em 1em !important;
+        }
+
+        blockquote, .texty, ul.texty, p.texty {
+            font-variant: normal;
+            text-align: left;
+            padding: 0 5em 0 5em;
+            font-size: 40pt;
+        }
+
+        .reveal h1 {
+            font-size: 90pt;
+        }
+        .reveal h2 {
+            font-size: 80pt;
+            margin-bottom: 40pt;
+        }
+
+        .reveal ul li {
+            list-style-type: none;
+        }
+
+        #footer{
+          position:absolute;
+          bottom: 0%;
+          width: 100%;
+          padding: 0 0 1em 0;
+        }
+
+        #footer p{
+          text-align: center;
+          font-size: 19pt;
+          font-variant: normal !important;
+        }
+
+        pre {
+            padding: 0 !important;
+        }
+
+        pre code {
+            max-height: 1000em;
+            height: 100%;
+            margin: 0 !important;
+        }
+
+        #aboutme ul{
+            font-variant: normal;
+            text-align: left;
+        }
+
+        </style>
+
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+
+				<section class=center>
+                    <h1>Can you make it smaller?</h1>
+                    <h2>An introduction to test-case reduction</h2>
+                </section>
+                <section id=aboutme>
+                    <h2>About Me</h2>
+                    <ul>
+                        <li>David R. MacIver</li>
+                        <li class=fragment>Creator of Hypothesis <span class=fragment>(QuickCheck-ish for Python)</span></li>
+                        <li class=fragment>PhD Student at Imperial College London.</li>
+                        <li class=fragment><em>Probably</em> the world expert in test-case reduction <span class=fragment>(less impressive than it sounds).</span></li>
+
+                    </ul>
+
+
+                </section>
+
+				<section class=center>
+                    <h2>what is test-case reduction?</h2>
+                </section>
+				<section class=center>
+                    <pre><code class="bash" data-trim data-noescape>
+$ clang -O3 my_program.c -o my_program
+$ ./my_program
+<span class=fragment>Segmentation Fault</span>
+<span class=fragment>$ clang -O0 my_program.c -o my_program</span>
+<span class=fragment># time passes</span>
+                </code></pre>
+                </section>
+
+				<section class=center>
+                    <p>it's never a compiler bug!</p>
+                    <p class=fragment>...except sometimes it is.</p>
+                    <p class=fragment>(probably not with c though)</p>
+                </section>
+
+				<section class=center>
+                    <p>it's a compiler bug!</p>
+                    <p class=fragment>...we should probably tell someone about it.</p>
+                </section>
+
+<section>
+                    <pre><code class="C" data-trim data-noescape>
+...
+for (g_32 = (-26); (g_32 != 29); g_32++) { /* block id: 9 */
+  int8_t *l_68 = &amp;g_69;
+  uint8_t *l_75 = &amp;g_76[2][3];
+  uint32_t *l_81 = &amp;g_82;
+  const int32_t l_83 = 0xB46DFF61L;
+  int32_t *l_84 = &amp;g_85;
+  int32_t l_87 = (-1L);
+  int32_t *l_261 = (void *)0;
+  uint16_t *l_277 = &amp;g_180[2][2];
+  int32_t *l_293[4][7] = {{&amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32},
+                          {&amp;l_87, &amp;l_87, &amp;l_87, &amp;l_87, &amp;l_87, &amp;l_87, &amp;l_87},
+                          {&amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32, &amp;g_32},
+                          {&amp;g_32, &amp;l_87, &amp;g_32, &amp;l_87, &amp;g_32, &amp;l_87, &amp;g_32}};
+  int i, j;
+  if (((*l_84) =
+           (((*l_68) = p_63) &amp;&amp;
+            ((((safe_sub_func_uint32_t_u_u(
+                   (p_63, ((*l_81) &amp;=
+                           (l_72, (safe_mod_func_int8_t_s_s(
+                                      (0x11L &gt; (65526UL &gt; g_32)),
+                                      (((*l_75) |= (p_63 | p_61)) |
+                                       (safe_add_func_int8_t_s_s(
+                                           (l_79 != &amp;g_80), 0x57L)))))))),
+                   0x05A9EE2BL)) &amp;
+               l_83) &amp;&amp;
+              5L) == l_83)))) { /* block id: 14 */
+...
+</code></pre></section>
+
+<section class=center>
+                    <pre><code class="C" data-trim data-noescape>
+#include "stdint.h"
+int16_t a = 0;
+int32_t volatile b = 0;
+int32_t *c(uint8_t g, uint32_t h, uint16_t i) {
+j:
+  goto j;
+}
+uint32_t d() {
+  b;
+  return 0;
+}
+int32_t e() {
+  uint32_t f[1][1] = {1};
+  c(a, d(), f[0][0]);
+  return 0;
+}
+int main() { e(); }
+</code></pre></section>
+
+                <section class=center>
+                    <h2>test-case reduction</h2>
+                    <p>key idea: use small examples in bug reports.</p>
+                    <p class=fragment>how do we get them?</p>
+                </section>
+
+                <section>
+                    <h2>automated test-case reduction</h2>
+                    <ul>
+                        <li class=fragment>an initial <em>test case</em>.</li>
+                        <li class=fragment>an <em>interestingness test</em>.</li>
+                        <li class=fragment>a <em>test-case reducer</em>.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>a test case</h2>
+                    <ul>
+                        <li>typically a file that triggers a bug</li>
+                        <li>could be manual, often generated</li>
+                    </ul>
+                </section>
+                <section>
+                    <h2>an interestingness test</h2>
+                    <ul>
+                        <li>typically "this test case triggers this bug"</li>
+                        <li>can be quite tricky to write well!</li>
+                        <li>more on this in a moment</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2>a test-case reducer</h2>
+
+                    <ul class=texty>
+                        <li class=fragment>C-Reduce: <a href="http://embed.cs.utah.edu/creduce">embed.cs.utah.edu/creduce</a></li>
+                        <li class=fragment>Shrink Ray: <a href="https://github.com/DRMacIver/shrinkray/">github.com/DRMacIver/shrinkray</a></li>
+                        <li class=fragment>Property-Based Testing Libraries</li>
+                        <li class=fragment>Or write your own!</li>
+                    </ul>
+                </section>
+
+            <section class=center>
+
+                    <pre><code class="bash" data-trim data-noescape>
+$ creduce ./is_interesting.py my_program.c 
+                    </code></pre>
+<pre class=fragment><code class="bash" data-trim data-noescape>
+===&lt; 62497 &gt;===
+running 4 interestingness tests in parallel
+===&lt; pass_unifdef :: 0 &gt;===
+===&lt; pass_comments :: 0 &gt;===
+(9.9 %, 91023 bytes)
+===&lt; pass_ifs :: 0 &gt;===
+===&lt; pass_includes :: 0 &gt;===
+===&lt; pass_line_markers :: 0 &gt;===
+===&lt; pass_blank :: 0 &gt;===
+(10.0 %, 90954 bytes)
+===&lt; pass_clang_binsrch :: replace-function-def-with-decl &gt;===
+===&lt; pass_clang_binsrch :: remove-unused-function &gt;===
+===&lt; pass_lines :: 0 &gt;===
+(9.9 %, 91074 bytes)
+(9.9 %, 91043 bytes)
+...
+                </code></pre>
+                </section>
+
+<section class=center>
+<pre><code class=c data-trim>
+#include "stdint.h"
+a;
+main() {
+  uint32_t b[][1] = {};
+  a = b[0][0];
+}
+</code></pre>
+
+<pre><code lang=bash data-trim>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Illegal Instruction
+</code></pre>
+
+</section>
+
+
+    <section class=center>
+        <h2>how to develop a good interestingness test</h2>
+    </section>
+
+<section class=center><pre><code class="bash" data-trim data-noescape>
+
+#!/usr/bin/env python
+
+import subprocess
+import sys
+
+
+COMPILER = "clang"
+RUNTIME = "/path/to/csmith-2.3.0/runtime/"
+
+if __name__ == '__main__':
+    sourcefile = "my_program.c"
+    target = "./my_program"
+
+    try:
+        compilation = subprocess.run(
+            [COMPILER, sourcefile, "-O3",  "-I", RUNTIME, "-o", target],
+            timeout=5
+        )
+        if compilation.returncode != 0:
+            sys.exit(1)
+
+        result = subprocess.run(target, timeout=5)
+        if result.returncode &lt; 0:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+    except subprocess.TimeoutExpired:
+        sys.exit(1)
+</code></pre></section>
+
+<section class=center>
+<pre><code class=c data-trim>
+#include "stdint.h"
+a;
+main() {
+  uint32_t b[][1] = {};
+  a = b[0][0];
+}
+</code></pre>
+
+<pre><code lang=bash data-trim>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Illegal Instruction
+</code></pre>
+
+</section>
+
+
+                <section>
+                    <h2>interestingness test problems</h2>
+                    <table style="margin-top: 150px; margin-bottom: 80px;">
+                        <tr>
+                            <td style="font-size: 40pt; font-variant: small-caps">slippage</td> <td class=texty>Getting a different bug than you wanted.</td>
+                        </tr>
+                        <tr>
+                            <td style="font-size: 40pt; font-variant: small-caps">validity</td> <td class=texty>Getting a test case that is allowed to be broken.</td>
+                        </tr>
+                    </table>
+                    <p class="fragment texty" style="text-align: center">(secretly these are the same thing)
+                </section>
+                <section>
+                    <h2>brief digression: hypothesis</h2>
+                    <pre class=fragment><code class="python" data-trim>
+from hypothesis import given, strategies as st
+
+def mean(ls):
+    return sum(ls) / len(ls)
+
+@given(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
+def test_mean(ls):
+    assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+                    </code></pre>
+
+                    <pre class=fragment><code data-trim>
+
+Falsifying example: test_mean_is_within_bounds(
+  ls=[8.988465674311579e+307, 8.98846567431158e+307]
+)
+
+&gt;   assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+E   assert inf &lt;= 8.98846567431158e+307
+E    +  where inf = mean([8.988465674311579e+307, 8.98846567431158e+307])
+E    +  and   8.98846567431158e+307 = max([8.988465674311579e+307, 8.98846567431158e+307])
+                </code></pre>
+                </section>
+                <section>
+                    <h2>interestingness test problems: validity</h2>
+                    <pre><code class="python" data-trim>
+from hypothesis import given, strategies as st
+
+def mean(ls):
+    return sum(ls) / len(ls)
+
+@example([])
+@given(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
+def test_mean(ls):
+    assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+                    </code></pre>
+
+                    <pre class=fragment><code data-trim>
+Falsifying example: test_mean_is_within_bounds(ls=[])
+
+&gt;       assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+E       ValueError: min() arg is an empty sequence
+
+                </code></pre>
+                </section>
+
+                <section>
+                    <h2>interestingness test problems: slippage</h2>
+                    <pre><code class="python" data-trim>
+from hypothesis import given, strategies as st
+
+def mean(ls):
+    return sum(ls) / len(ls)
+
+@given(st.lists(st.floats(allow_nan=False, allow_infinity=False), min_size=1))
+def test_mean(ls):
+    assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+                    </code></pre>
+
+                    <pre class=fragment><code data-trim>
+
+Falsifying example: test_mean_is_within_bounds(
+  ls=[1.5000000000000004, 1.5000000000000004, 1.5000000000000004]
+)
+
+&gt;   assert min(ls) &lt;= mean(ls) &lt;= max(ls)
+E   assert 1.5000000000000007 &lt;= 1.5000000000000004
+E    +  where 1.5000000000000007 = mean([1.5000000000000004, 1.5000000000000004, 1.5000000000000004])
+E    +  and   1.5000000000000004 = max([1.5000000000000004, 1.5000000000000004, 1.5000000000000004])
+                </code></pre>
+                </section>
+                <section>
+                    <h2>interestingness test problems: slippage</h2>
+                    <img src="images/reductionfork.png">
+                </section>
+
+    <section class=center>
+        <h2>how to develop a good interestingness test</h2>
+        <h2>iterate!</h2>
+    </section>
+
+<section>
+<h2>code compiles but executable crashes</h2>
+
+<pre><code class=c>
+#include "stdint.h"
+a;
+main() {
+  uint32_t b[][1] = {};
+  a = b[0][0];
+}
+</code></pre>
+
+<pre><code lang=bash>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Illegal Instruction
+</code></pre>
+
+</section>
+
+<section>
+<h2>code compiles but executable segfaults</h2>
+
+<pre><code data-trim class=c>
+#include "csmith.h"
+a;
+b() {
+c:
+  goto c;
+}
+d() {
+  int16_t *e[40] = {};
+  for (; a; a = safe_add_func_int32_t_s_s);
+}
+main() {
+  d();
+  b();
+}
+</code></pre>
+
+<pre><code data-trim lang=bash>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Segmentation fault
+</code></pre>
+</section>
+
+<section>
+<h2>segfault despite undefined behaviour checking</h2>
+
+<pre><code data-trim class=c>
+#include "csmith.h"
+int16_t a;
+int32_t volatile b;
+static int32_t *c(uint8_t, uint32_t, uint16_t);
+static uint32_t d();
+int32_t e() {
+  uint32_t f[][1] = {1};
+  c(a, d(), f[0][0]);
+  return 0;
+}
+int32_t *c(uint8_t g, uint32_t h, uint16_t i) {
+j:
+  goto j;
+}
+uint32_t d() {
+  b;
+  return 0;
+}
+int main() { e(); }
+</code></pre>
+<pre><code data-trim lang=bash>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Segmentation fault
+</code></pre>
+</section>
+
+<section>
+<h2>manual tidying</h2>
+
+                    <pre><code class="C" data-trim data-noescape>
+#include "stdint.h"
+int16_t a = 0;
+int32_t volatile b = 0;
+int32_t *c(uint8_t g, uint32_t h, uint16_t i) {
+j:
+  goto j;
+}
+uint32_t d() {
+  b;
+  return 0;
+}
+int32_t e() {
+  uint32_t f[1][1] = {1};
+  c(a, d(), f[0][0]);
+  return 0;
+}
+int main() { e(); }
+</code></pre>
+
+<pre><code data-trim lang=bash>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Segmentation fault
+</code></pre>
+</section>
+
+
+<section>
+<h2>shrink ray</h2>
+                    <pre><code class="C" data-trim data-noescape>
+#include "csmith.h"
+volatile int g_792[10][10][2];
+static int *func_2(uint8_t, uint32_t, uint16_t);
+uint32_t func_12();
+int func_1() {
+  int l[65] = {};
+  func_2(
+      6, (((safe_div_func_uint64_t_u_u(
+          (safe_mod_func_uint32_t_u_u(
+              (func_12()), (safe_rshift_func_int16_t_s_u(
+                               (((safe_rshift_func_int8_t_s_s) || 6)), l[0])))),
+          g_792[5][9][1])))),
+      l[0]);
+  return (1);
+}
+int *func_2(uint8_t p3, uint32_t _, uint16_t p) {
+    lbl_1152: goto lbl_1152;
+}
+uint32_t func_12() { return 6; }
+int main() { func_1(); }
+
+</code></pre>
+
+<pre><code data-trim lang=bash>
+$ clang  -I -O3 my_program.c -omy_program
+$ ./my_program  
+Segmentation fault
+</code></pre>
+</section>
+
+</section>
+
+<section class=center><h2>where is this useful?</section>
+
+<section><h2>not just compilers!</h2><img src="images/yapfbugs.png"></section>
+
+<section class=center><pre><code class=python data-trim>
+#!/usr/bin/env python
+
+import subprocess, tempfile, sys, shutil
+
+if __name__ == '__main__':
+    source = "source.py"
+
+    tmp = "tmp.py"
+
+    shutil.copyfile(source, tmp)
+
+    subprocess.check_call(["black", "-l79", tmp])
+
+    if subprocess.call(["pycodestyle", tmp]) != 0:
+        sys.exit(1)
+
+    subprocess.check_call(["yapf", "-i", "--style=pep8", tmp])
+
+    if subprocess.call(["pycodestyle", tmp]) == 0:
+        sys.exit(1)
+
+    sys.exit(0)
+</code></pre></section>
+
+<section><h2>not just compilers!</h2>
+    <ul>
+        <li class=fragment>language tools of all sorts</li>
+        <li class=fragment>data pipelines</li>
+        <li class=fragment>anything you can test!</li>
+    </ul>
+</section>
+
+<section class=center><h2>how does it work?</h2></section>
+
+
+<section class=center><h2>greedy local search</h2></section>
+<section class=center><h2>let's write a test-case reducer!</h2></section>
+<section class=center><h2>nb: imperative programming awaits</h2></section>
+
+<section><pre><code class=python data-trim>
+#!/usr/bin/env python
+import os, sys, tempfile, subprocess
+
+if __name__ == "__main__":
+    _, testfile, inputfile = sys.argv
+    with open(inputfile, "r") as i:
+        original = i.read()
+    best = original
+
+    def test(s):
+        global best
+        with tempfile.TemporaryDirectory() as d:
+            with open(os.path.join(d, os.path.basename(inputfile)), "w") as o:
+                o.write(s)
+            try:
+                if subprocess.run(
+                    os.path.abspath(testfile), cwd=d, timeout=5,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                ).returncode == 0:
+                    if len(s) &lt; len(best):
+                        print(f"Reduced best from {len(best)} to {len(s)} bytes")
+                        best = s
+                        with open(inputfile + ".reduced", "w") as o:
+                            o.write(s)
+                    return True
+                except subprocess.TimeoutExpired:
+                    pass
+            return False
+        return result
+    ...
+</code></pre></section>
+
+
+<section><pre><code class=python data-trim>
+#!/usr/bin/env python
+
+import os, sys, tempfile, subprocess
+
+if __name__ == "__main__":
+    ...
+
+    def test(s):
+        ...
+
+
+    def delete_lines():
+        print("Deleting lines")
+        lines = best.split("\n")
+
+        for i in range(len(lines) - 1, -1, -1):
+            attempt = lines[:i]+ lines[i + 1:]
+            if test('\n'.join(attempt)):
+                lines = attempt
+
+    prev = None
+    while prev != best:
+        prev = best
+
+        delete_lines()
+
+</code></pre></section>
+
+
+<section>
+
+<pre><code class=bash>
+$ my_reducer ./is_interesting.py source.py
+</code></pre>
+
+<pre><code data-trim>
+Deleting lines
+Deleting line 211
+Reduced best from 8094 to 8093 bytes
+Deleting line 210
+Deleting line 209
+Reduced best from 8093 to 8041 bytes
+Deleting line 208
+Deleting line 207
+Reduced best from 8041 to 7977 bytes
+Deleting line 206
+Reduced best from 7977 to 7901 bytes
+Deleting line 205
+Reduced best from 7901 to 7858 bytes
+Deleting line 204
+Reduced best from 7858 to 7803 bytes
+Deleting line 203
+Reduced best from 7803 to 7754 bytes
+Deleting line 202
+Deleting line 201
+Deleting line 200
+...
+</code></pre></section>
+
+<section>
+<pre><code class=python data-trim>
+WHEEL_NAME = re.compile(
+    r"""^(?P&lt;project_name&gt;.+?)-(?P&lt;version&gt;\d.*?)
+    )\.whl$""",
+).match
+NAMESPACE_PACKAGE_INIT = """\
+"""
+
+
+def unpack(src_dir, dst_dir):
+    for dirpath, dirnames, filenames in os.walk(src_dir):
+        for f in filenames:
+            os.renames(src, dst)
+        if match is None:
+            setattr(self, k, v)
+        return itertools.product()
+        for member in zf.namelist():
+            if dirname.endswith(".dist-info") and canonicalize_name(dirname).startswith(
+                canonicalize_name(self.project_name)
+            ):
+                value = fp.read().decode("utf-8") if PY3 else fp.read()
+        wheel_v1 = parse_version("1.0") &lt;= wheel_version &lt; parse_version("2.0dev0")
+        if not wheel_v1:
+...
+</code></pre>
+</section>
+
+<section>
+<pre><code class=python data-trim>
+    def indent_of(s):
+        length = len(s) - len(s.lstrip())
+        return s[:length]
+
+    def delete_indented_regions():
+        print("Deleting indented regions")
+        lines = best.splitlines()
+
+        i = 0
+        while i + 1 &lt; len(lines):
+            indent = indent_of(lines[i])
+            j = i + 1
+            while j &lt; len(lines) and (not lines[j] or len(indent_of(lines[j])) &gt; len(indent)):
+                j += 1
+
+            if j &gt; i + 1:
+                print(f"Deleting lines {i} to {j - 1}")
+
+            if j &gt; i + 1 and test('\n'.join(lines[:i] + lines[j:])):
+                del lines[i:j]
+            else:
+                i += 1
+
+    prev = None
+    while prev != best:
+        prev = best
+
+        delete_indented_regions()
+
+        delete_lines() 
+
+</code></pre>
+</section>
+
+<section>
+
+<pre><code class=bash data-trim>
+$ my_reducer ./is_interesting.py source.py
+</code></pre>
+
+<pre><code>
+Deleting indented regions
+Deleting lines 0 to 1
+Reduced best from 8094 to 8070 bytes
+Deleting lines 6 to 7
+Reduced best from 8070 to 8054 bytes
+...
+Reduced best from 5033 to 4549 bytes
+Deleting lines 17 to 73
+Reduced best from 4549 to 2346 bytes
+Deleting lines 18 to 44
+...
+Deleting lines 9 to 10
+Reduced best from 452 to 313 bytes
+Deleting lines
+...
+Deleting line 4
+Deleting line 3
+Reduced best from 313 to 254 bytes
+Deleting line 2
+...
+</code></pre>
+</section>
+
+<section class=center>
+<pre><code class=python data-trim>
+NAMESPACE_PACKAGE_INIT = '''\
+'''
+class Wheel:
+    for subdir in filter(os.path.exists, (
+        os.path.join(dist_data, d)
+        for d in ('data', 'headers', 'purelib', 'platlib')
+    )):
+        unpack(subdir, destination_eggdir)
+</code></pre></section>
+
+<section>
+<h2>Advanced Topics</h2>
+<ul>
+<li class=fragment>caching</li>
+<li class=fragment>adaptive methods</li>
+<li class=fragment>concurrent reduction</li>
+<li class=fragment>pass ordering <span class=fragment>(open research problem)</span></li>
+</ul>
+
+</section>
+
+<section>
+<h2>what now?</h2>
+<ul>
+<li class=fragment>look for opportunities to use it!</li>
+<li class=fragment>try out shrink ray</li>
+<li class=fragment>let me know how it goes</li>
+</ul>
+
+<p class="fragment texty" style="text-align: center;" >david@drmaciver.com / @DRMacIver</p>
+</section>
+
+			</div>
+	<div id=footer>
+	  <p>David R. MacIver | @DRMacIver | drmaciver.com</p>
+        <p>drmaciver.github.io/codemesh-2019</p>
+	</div>
+		</div>
+
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+            function fixMathjax( event ) {
+                if(MathJax) {
+                    setTimeout(function(){MathJax.Hub.Rerender(event.currentSlide);}, 10)
+                }
+            }
+
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+                controls: false,
+                progress: false,
+                history: true,
+                center: false,
+
+                width: '100%',
+                height: '100%',
+
+                transition: 'fade',
+
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true },
+                    { src: 'plugin/math/math.js', async: true },
+				]
+			});
+
+            Reveal.addEventListener('slidechanged', fixMathjax);
+            Reveal.addEventListener('fragmentshown', fixMathjax);
+		</script>
+	</body>
+</html>
