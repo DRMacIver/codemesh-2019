@@ -547,12 +547,15 @@ if __name__ == '__main__':
 
 <section class=center><pre><code class=python data-trim>
 #!/usr/bin/env python
+
 import os, sys, tempfile, subprocess
 
 if __name__ == "__main__":
     _, testfile, inputfile = sys.argv
+
     with open(inputfile, "r") as i:
         original = i.read()
+
     best = original
 
     def test(s):
@@ -560,8 +563,6 @@ if __name__ == "__main__":
 </code></pre></section>
 
 <section class=center><pre><code class=python data-trim>
-...
-
 def test(s):
     global best
     with tempfile.TemporaryDirectory() as d:
@@ -582,12 +583,9 @@ def test(s):
                 pass
         return False
     return result
-...
 </code></pre></section>
 
 <section class=center><pre><code class=python data-trim>
-...
-
 def delete_lines():
     print("Deleting lines")
     lines = best.split("\n")
@@ -760,8 +758,8 @@ class Wheel:
 <section>
 <h2>what now?</h2>
 <ul>
-<li class=fragment data-fragment-index=1>look for opportunities to use it!</li>
-<li class=fragment data-fragment-index=2>try out shrink ray</li>
+<li class=fragment data-fragment-index=1>look for opportunities to use it.</li>
+<li class=fragment data-fragment-index=2>try out shrink ray.</li>
 <li class=fragment data-fragment-index=3>ps. use hypothesis.
 <li class=fragment data-fragment-index=3 style="font-size: 40pt; font-variant: normal;"><a href="https://hypothesis.works">hypothesis.works</a> / <a href="https://hypothesis.readthedocs.io">hypothesis.readthedocs.io</a></li>
 <li class=fragment data-fragment-index=4>let me know how it all goes!</li>
