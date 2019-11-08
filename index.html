@@ -28,6 +28,16 @@
             font-size: 60pt;
         }
 
+        .reveal pre {
+
+              overflow: hidden !important;
+        }
+
+        .reveal pre, .reveal code {
+              overflow: hidden !important;
+              text-overflow: ellipsis;
+        }
+
         code.python {
             padding: 1em 1em 1em 1em !important;
         }
@@ -114,7 +124,7 @@ $ ./my_program
                     <p class=fragment>...we should probably tell someone about it.</p>
                 </section>
 
-<section>
+<section class=center>
                     <pre><code class="C" data-trim data-noescape>
 ...
 for (g_32 = (-26); (g_32 != 29); g_32++) { /* block id: 9 */
@@ -134,15 +144,6 @@ for (g_32 = (-26); (g_32 != 29); g_32++) { /* block id: 9 */
   if (((*l_84) =
            (((*l_68) = p_63) &amp;&amp;
             ((((safe_sub_func_uint32_t_u_u(
-                   (p_63, ((*l_81) &amp;=
-                           (l_72, (safe_mod_func_int8_t_s_s(
-                                      (0x11L &gt; (65526UL &gt; g_32)),
-                                      (((*l_75) |= (p_63 | p_61)) |
-                                       (safe_add_func_int8_t_s_s(
-                                           (l_79 != &amp;g_80), 0x57L)))))))),
-                   0x05A9EE2BL)) &amp;
-               l_83) &amp;&amp;
-              5L) == l_83)))) { /* block id: 14 */
 ...
 </code></pre></section>
 
@@ -219,18 +220,14 @@ int main() { e(); }
 
 <section class=center><pre><code class="bash" data-trim data-noescape>
 #!/usr/bin/env python
-
 import subprocess
 import sys
-
-
 COMPILER = "clang"
 RUNTIME = "/path/to/csmith-2.3.0/runtime/"
 
 if __name__ == '__main__':
     sourcefile = "my_program.c"
     target = "./my_program"
-
     try:
         compilation = subprocess.run(
             [COMPILER, sourcefile, "-O3",  "-I", RUNTIME, "-o", target],
@@ -238,12 +235,8 @@ if __name__ == '__main__':
         )
         if compilation.returncode != 0:
             sys.exit(1)
-
         result = subprocess.run(target, timeout=5)
-        if result.returncode &lt; 0:
-            sys.exit(0)
-        else:
-            sys.exit(1)
+        sys.exit(0 if result.returncode &lt; 0 else 1)
     except subprocess.TimeoutExpired:
         sys.exit(1)
 </code></pre></section>
@@ -433,12 +426,6 @@ main() {
   b();
 }
 </code></pre>
-
-<pre><code data-trim lang=bash>
-$ clang  -I -O3 my_program.c -omy_program
-$ ./my_program  
-Segmentation fault
-</code></pre>
 </section>
 
 <section>
@@ -465,11 +452,6 @@ uint32_t d() {
 }
 int main() { e(); }
 </code></pre>
-<pre><code data-trim lang=bash>
-$ clang  -I -O3 my_program.c -omy_program
-$ ./my_program  
-Segmentation fault
-</code></pre>
 </section>
 
 <section>
@@ -495,11 +477,6 @@ int32_t e() {
 int main() { e(); }
 </code></pre>
 
-<pre><code data-trim lang=bash>
-$ clang  -I -O3 my_program.c -omy_program
-$ ./my_program  
-Segmentation fault
-</code></pre>
 </section>
 
 
@@ -528,12 +505,6 @@ uint32_t func_12() { return 6; }
 int main() { func_1(); }
 
 </code></pre>
-
-<pre><code data-trim lang=bash>
-$ clang  -I -O3 my_program.c -omy_program
-$ ./my_program  
-Segmentation fault
-</code></pre>
 </section>
 
 </section>
@@ -546,24 +517,16 @@ Segmentation fault
 #!/usr/bin/env python
 
 import subprocess, tempfile, sys, shutil
-
 if __name__ == '__main__':
     source = "source.py"
-
     tmp = "tmp.py"
-
     shutil.copyfile(source, tmp)
-
     subprocess.check_call(["black", "-l79", tmp])
-
     if subprocess.call(["pycodestyle", tmp]) != 0:
         sys.exit(1)
-
     subprocess.check_call(["yapf", "-i", "--style=pep8", tmp])
-
     if subprocess.call(["pycodestyle", tmp]) == 0:
         sys.exit(1)
-
     sys.exit(0)
 </code></pre></section>
 
@@ -582,7 +545,7 @@ if __name__ == '__main__':
 <section class=center><h2>let's write a test-case reducer!</h2></section>
 <section class=center><h2>nb: imperative programming awaits</h2></section>
 
-<section><pre><code class=python data-trim>
+<section class=center><pre><code class=python data-trim>
 #!/usr/bin/env python
 import os, sys, tempfile, subprocess
 
@@ -593,66 +556,63 @@ if __name__ == "__main__":
     best = original
 
     def test(s):
-        global best
-        with tempfile.TemporaryDirectory() as d:
-            with open(os.path.join(d, os.path.basename(inputfile)), "w") as o:
-                o.write(s)
-            try:
-                if subprocess.run(
-                    os.path.abspath(testfile), cwd=d, timeout=5,
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                ).returncode == 0:
-                    if len(s) &lt; len(best):
-                        print(f"Reduced best from {len(best)} to {len(s)} bytes")
-                        best = s
-                        with open(inputfile + ".reduced", "w") as o:
-                            o.write(s)
-                    return True
-                except subprocess.TimeoutExpired:
-                    pass
-            return False
-        return result
-    ...
+        ...
 </code></pre></section>
 
+<section class=center><pre><code class=python data-trim>
+...
 
-<section><pre><code class=python data-trim>
-#!/usr/bin/env python
+def test(s):
+    global best
+    with tempfile.TemporaryDirectory() as d:
+        with open(os.path.join(d, os.path.basename(inputfile)), "w") as o:
+            o.write(s)
+        try:
+            if subprocess.run(
+                os.path.abspath(testfile), cwd=d, timeout=5,
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            ).returncode == 0:
+                if len(s) &lt; len(best):
+                    print(f"Reduced best from {len(best)} to {len(s)} bytes")
+                    best = s
+                    with open(inputfile + ".reduced", "w") as o:
+                        o.write(s)
+                return True
+            except subprocess.TimeoutExpired:
+                pass
+        return False
+    return result
+...
+</code></pre></section>
 
-import os, sys, tempfile, subprocess
+<section class=center><pre><code class=python data-trim>
+...
 
-if __name__ == "__main__":
-    ...
+def delete_lines():
+    print("Deleting lines")
+    lines = best.split("\n")
 
-    def test(s):
-        ...
+    for i in range(len(lines) - 1, -1, -1):
+        attempt = lines[:i]+ lines[i + 1:]
+        if test('\n'.join(attempt)):
+            lines = attempt
 
+prev = None
+while prev != best:
+    prev = best
 
-    def delete_lines():
-        print("Deleting lines")
-        lines = best.split("\n")
-
-        for i in range(len(lines) - 1, -1, -1):
-            attempt = lines[:i]+ lines[i + 1:]
-            if test('\n'.join(attempt)):
-                lines = attempt
-
-    prev = None
-    while prev != best:
-        prev = best
-
-        delete_lines()
+    delete_lines()
 
 </code></pre></section>
 
 
 <section>
 
-<pre><code class=bash>
+<pre><code class=bash data-trim>
 $ my_reducer ./is_interesting.py source.py
 </code></pre>
 
-<pre><code data-trim>
+<pre><code class=no-highlight data-trim>
 Deleting lines
 Deleting line 211
 Reduced best from 8094 to 8093 bytes
@@ -706,36 +666,40 @@ def unpack(src_dir, dst_dir):
 
 <section>
 <pre><code class=python data-trim>
-    def indent_of(s):
-        length = len(s) - len(s.lstrip())
-        return s[:length]
+def indent_of(s):
+    length = len(s) - len(s.lstrip())
+    return s[:length]
 
-    def delete_indented_regions():
-        print("Deleting indented regions")
-        lines = best.splitlines()
+def delete_indented_regions():
+    print("Deleting indented regions")
+    lines = best.splitlines()
 
-        i = 0
-        while i + 1 &lt; len(lines):
-            indent = indent_of(lines[i])
-            j = i + 1
-            while j &lt; len(lines) and (not lines[j] or len(indent_of(lines[j])) &gt; len(indent)):
-                j += 1
+    i = 0
+    while i + 1 &lt; len(lines):
+        indent = indent_of(lines[i])
+        j = i + 1
+        while j &lt; len(lines) and (
+            not lines[j] or len(indent_of(lines[j])) &gt; len(indent)
+        ):
+            j += 1
+        if j &gt; i + 1:
+            print(f"Deleting lines {i} to {j - 1}")
+        if j &gt; i + 1 and test('\n'.join(lines[:i] + lines[j:])):
+            del lines[i:j]
+        else:
+            i += 1
+</code></pre>
+</section>
 
-            if j &gt; i + 1:
-                print(f"Deleting lines {i} to {j - 1}")
+<section class=center>
+<pre><code class=python data-trim>
+prev = None
+while prev != best:
+    prev = best
 
-            if j &gt; i + 1 and test('\n'.join(lines[:i] + lines[j:])):
-                del lines[i:j]
-            else:
-                i += 1
+    delete_indented_regions()
 
-    prev = None
-    while prev != best:
-        prev = best
-
-        delete_indented_regions()
-
-        delete_lines() 
+    delete_lines() 
 
 </code></pre>
 </section>
@@ -746,7 +710,7 @@ def unpack(src_dir, dst_dir):
 $ my_reducer ./is_interesting.py source.py
 </code></pre>
 
-<pre><code>
+<pre><code class=no-highlight>
 Deleting indented regions
 Deleting lines 0 to 1
 Reduced best from 8094 to 8070 bytes

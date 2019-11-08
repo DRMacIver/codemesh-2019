@@ -4,11 +4,13 @@ Arduino® Light Theme - Stefania Mellai <s.mellai@arduino.cc>
 
 */
 
-.hljs {
+.hljs, code.no-highlight {
   display: block;
   overflow-x: auto;
   padding: 0.5em;
   background: #FFFFFF;
+  font-size: 25pt;
+  line-height: 25pt;
 }
 
 .hljs,
