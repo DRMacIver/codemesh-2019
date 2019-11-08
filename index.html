@@ -209,8 +209,55 @@ int main() { e(); }
                     </ul>
                 </section>
 
-            <section class=center>
+<section class=center>
+<ul>
+<li>&#9745; test case</li>
+<li>&#9745; test-case reducer</li>
+<li>&#x2610; interestingness test</li>
+</ul>
+</section>
 
+<section class=center><pre><code class="bash" data-trim data-noescape>
+#!/usr/bin/env python
+
+import subprocess
+import sys
+
+
+COMPILER = "clang"
+RUNTIME = "/path/to/csmith-2.3.0/runtime/"
+
+if __name__ == '__main__':
+    sourcefile = "my_program.c"
+    target = "./my_program"
+
+    try:
+        compilation = subprocess.run(
+            [COMPILER, sourcefile, "-O3",  "-I", RUNTIME, "-o", target],
+            timeout=5
+        )
+        if compilation.returncode != 0:
+            sys.exit(1)
+
+        result = subprocess.run(target, timeout=5)
+        if result.returncode &lt; 0:
+            sys.exit(0)
+        else:
+            sys.exit(1)
+    except subprocess.TimeoutExpired:
+        sys.exit(1)
+</code></pre></section>
+
+<section class=center>
+<ul>
+<li>&#9745; test case</li>
+<li>&#9745; test-case reducer</li>
+<li>&#9745; interestingness test</li>
+</ul>
+</section>
+
+
+            <section class=center>
                     <pre><code class="bash" data-trim data-noescape>
 $ creduce ./is_interesting.py my_program.c 
                     </code></pre>
@@ -244,69 +291,13 @@ main() {
 }
 </code></pre>
 
-<pre><code lang=bash data-trim>
+<pre class=fragment><code lang=bash data-trim>
 $ clang  -I -O3 my_program.c -omy_program
 $ ./my_program  
 Illegal Instruction
 </code></pre>
 
 </section>
-
-
-    <section class=center>
-        <h2>how to develop a good interestingness test</h2>
-    </section>
-
-<section class=center><pre><code class="bash" data-trim data-noescape>
-
-#!/usr/bin/env python
-
-import subprocess
-import sys
-
-
-COMPILER = "clang"
-RUNTIME = "/path/to/csmith-2.3.0/runtime/"
-
-if __name__ == '__main__':
-    sourcefile = "my_program.c"
-    target = "./my_program"
-
-    try:
-        compilation = subprocess.run(
-            [COMPILER, sourcefile, "-O3",  "-I", RUNTIME, "-o", target],
-            timeout=5
-        )
-        if compilation.returncode != 0:
-            sys.exit(1)
-
-        result = subprocess.run(target, timeout=5)
-        if result.returncode &lt; 0:
-            sys.exit(0)
-        else:
-            sys.exit(1)
-    except subprocess.TimeoutExpired:
-        sys.exit(1)
-</code></pre></section>
-
-<section class=center>
-<pre><code class=c data-trim>
-#include "stdint.h"
-a;
-main() {
-  uint32_t b[][1] = {};
-  a = b[0][0];
-}
-</code></pre>
-
-<pre><code lang=bash data-trim>
-$ clang  -I -O3 my_program.c -omy_program
-$ ./my_program  
-Illegal Instruction
-</code></pre>
-
-</section>
-
 
                 <section>
                     <h2>interestingness test problems</h2>
@@ -400,7 +391,7 @@ E    +  and   1.5000000000000004 = max([1.5000000000000004, 1.5000000000000004, 
 
     <section class=center>
         <h2>how to develop a good interestingness test</h2>
-        <h2>iterate!</h2>
+        <h2 class=fragment>iterate!</h2>
     </section>
 
 <section>
